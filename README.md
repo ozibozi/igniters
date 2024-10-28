@@ -8,16 +8,28 @@ A collection of igniter scripts designed to provide setup steps for various envi
 These scripts automate initial setup tasks for both development and production environments. Tasks can include user creation, security configurations, software initialization, and repository setup.
 
 ## Usage
-
-1. Clone the repository and navigate to the directory.
-2. Make scripts executable:
+### Using Scripts from Source
    ```bash
+   ## Clone the repository
+   git clone https://github.com/ozibozi/igniters.git
+   ## Navigate to the scripts directory
+   cd scripts
+   ## Make scripts executable
    chmod +x *.sh
-   ```
-3. Run scripts as needed:
-   ```bash
+   ## Run scripts as needed
    ./script-name.sh
    ```
+## Using Scripts via Raw GitHub Files
+You can run the scripts directly from the raw GitHub URL using `curl` or `wget`:
+### Using `curl`
+   ```bash
+   curl -s https://raw.githubusercontent.com/ozibozi/igniters/main/scripts/ubuntu-igniter.sh
+   ```
+### Using `wget`
+   ```bash
+   wget -qO- https://raw.githubusercontent.com/<username>/igniters/main/ubuntu-igniter.sh
+   ```
+  
 
 ## Contributing
 
