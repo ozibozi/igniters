@@ -23,7 +23,13 @@ These scripts automate initial setup tasks for both development and production e
 You can run the scripts directly from the raw GitHub URL using `curl` or `wget`:
 ### Using `curl`
    ```bash
-   curl -s https://raw.githubusercontent.com/ozibozi/igniters/main/scripts/ubuntu-igniter.sh
+   curl -fsSL https://raw.githubusercontent.com/ozibozi/igniters/main/scripts/ubuntu-igniter.sh -o ubuntu-igniter.sh
+   chmod +x ubuntu-igniter.sh
+   sudo ./ubuntu-igniter.sh
+   ```
+   If you still prefer a one-liner, this is more direct but higher risk:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/ozibozi/igniters/main/scripts/ubuntu-igniter.sh | bash
    ```
 ### Using `wget`
    ```bash

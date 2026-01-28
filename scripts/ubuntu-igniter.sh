@@ -7,13 +7,19 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Ensure a username argument is provided
-if [ -z "$1" ]; then
-    echo "Usage: ./setup.sh <username>"
-    exit 1
-fi
-
-USERNAME=$1
+# Prompt for a username until a non-existing user is provided
+while true; do
+    read -r -p "Enter new username: " USERNAME
+    if [ -z "$USERNAME" ]; then
+        echo "Username cannot be empty."
+        continue
+    fi
+    if id -u "$USERNAME" >/dev/null 2>&1; then
+        echo "User '$USERNAME' already exists. Choose another."
+        continue
+    fi
+    break
+done
 
 # Determine the path to the authorized_keys file based on the invoking user
 # If the invoking user is not root, set AUTH_KEYS to their authorized_keys
@@ -30,10 +36,15 @@ if [ ! -f "$AUTH_KEYS" ]; then
     AUTH_KEYS="/root/.ssh/authorized_keys"
 fi
 
-# Final check: Exit with an error if neither file exists
+# Final check: Prompt for a key if no authorized_keys file exists
+AUTH_KEYS_CONTENT=""
 if [ ! -f "$AUTH_KEYS" ]; then
-    echo "Error: No authorized_keys file found in the invoking user or root directories."
-    exit 1
+    echo "No authorized_keys file found. Paste a public key (or press Enter to abort):"
+    read -r AUTH_KEYS_CONTENT
+    if [ -z "$AUTH_KEYS_CONTENT" ]; then
+        echo "Error: No public key provided."
+        exit 1
+    fi
 fi
 
 
@@ -51,8 +62,12 @@ echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers
 # Create the .ssh directory in the user's home
 mkdir -p /home/"$USERNAME"/.ssh
 
-# Copy the SSH authorized_keys to the new user
-cp "$AUTH_KEYS" /home/"$USERNAME"/.ssh/authorized_keys
+# Copy or write the SSH authorized_keys to the new user
+if [ -n "$AUTH_KEYS_CONTENT" ]; then
+    echo "$AUTH_KEYS_CONTENT" > /home/"$USERNAME"/.ssh/authorized_keys
+else
+    cp "$AUTH_KEYS" /home/"$USERNAME"/.ssh/authorized_keys
+fi
 
 sleep 1 
 
@@ -69,9 +84,12 @@ fi
 sleep 1
 
 # Ensure PasswordAuthentication is set to "no"
-sed -E -i 's|^#?(PasswordAuthentication)\s.*|\1 no|' /etc/ssh/sshd_config
-if ! grep '^PasswordAuthentication\s' /etc/ssh/sshd_config; then 
-    echo 'PasswordAuthentication no' | tee -a /etc/ssh/sshd_config
+read -r -p "Disable SSH password authentication? (y/n): " DISABLE_SSH_PASSWORDS
+if [ "$DISABLE_SSH_PASSWORDS" = "y" ]; then
+    sed -E -i 's|^#?(PasswordAuthentication)\s.*|\1 no|' /etc/ssh/sshd_config
+    if ! grep '^PasswordAuthentication\s' /etc/ssh/sshd_config; then 
+        echo 'PasswordAuthentication no' | tee -a /etc/ssh/sshd_config
+    fi
 fi
 sleep 3
 # Update and upgrade system packages
